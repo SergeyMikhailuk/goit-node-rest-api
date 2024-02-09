@@ -1,53 +1,47 @@
-import fs from 'fs/promises';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import { Contact } from "../models/contactModel.js";
 
-const contactsPath = path.resolve("db", "contacts.json");
-
-export async function listContacts() {
-	const contacts = await fs.readFile(contactsPath, 'utf8');
-	return JSON.parse(contacts);
+export function listContacts() {
+	// Contact.find().select('+email');
+	// Contact.find().select('-name');
+	// Contact.find().select('name phone');
+	return Contact.find();
 }
 
-export async function getContactById(contactId) {
-	const contacts = await listContacts();
-	return contacts.find(contact => contact.id === contactId) || null;
+export function getContactById(contactId) {
+	return Contact.findById(contactId) || null;
 }
 
-export async function removeContact(contactId) {
-	const contacts = await listContacts();
-	const index = contacts.findIndex(contact => contact.id === contactId);
-	if (index !== -1) {
-		const [removedContact] = contacts.splice(index, 1);
-		await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
-		return removedContact;
-	}
-	return null;
+export function removeContact(contactId) {
+	return Contact.findByIdAndDelete(contactId) || null
 }
 
-export async function addContact(name, email, phone) {
-	const contacts = await listContacts();
-	const newContact = {
-		id: uuidv4(),
-		name,
-		email,
-		phone
-	};
-	contacts.push(newContact);
-	await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
-	return newContact;
+export function addContact(name, email, phone) {
+	return Contact.create({ name, email, phone })
 }
 
 export async function updateContact(contactId, { name, email, phone }) {
-	const contacts = await listContacts();
-	const index = contacts.findIndex(contact => contact.id === contactId);
-	if (index === -1) return null;
+	const contact = await Contact.findById(contactId);
 
-	if (name) contacts[index].name = name;
-	if (email) contacts[index].email = email;
-	if (phone) contacts[index].phone = phone;
+	if (!contact) return null;
 
-	await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
-	return contacts[index];
+	if (name) contact.name = name;
+	if (email) contact.email = email;
+	if (phone) contact.phone = phone;
+
+	await contact.save();
+
+	return contact;
+}
+
+export async function changeStatusContact(contactId, favorite) {
+	if (typeof favorite !== 'boolean') return null;
+
+	const contact = await Contact.findById(contactId);
+
+	contact.favorite = favorite;
+
+	await contact.save();
+
+	return contact;
 }
 
