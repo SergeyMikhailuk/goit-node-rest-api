@@ -35,5 +35,5 @@ app.use((err, req, res, next) => {
 
 const PORT = serverConfig.port;
 app.listen(PORT, () => {
-  console.log(`Server is running. Use our API on port: ${PORT}`);
+  console.log(`Server is running on port: ${PORT}`);
 });
