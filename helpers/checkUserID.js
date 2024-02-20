@@ -6,7 +6,6 @@ const checkUserID = (req, res, next) => {
 	const isValidID = Types.ObjectId.isValid(id);
 
 	if (!isValidID) next(HttpError(404, 'ID is no valid'));
-
 	next()
 }
 

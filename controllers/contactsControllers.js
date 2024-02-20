@@ -8,33 +8,38 @@ import {
 } from "../services/contactsServices.js";
 import HttpError from "../helpers/HttpError.js";
 
-export const getAllContacts = async (_, res, next) => {
+export const getAllContacts = async ({user}, res, next) => {
+	const {_id: owner} = user;
+
 	try {
-		const contacts = await listContacts();
+		const contacts = await listContacts(owner).populate({path: 'owner', select: 'email'});
 		res.status(200).json(contacts);
 	} catch (error) {
 		next(error)
 	}
 };
 
-export const getOneContact = async ({ params }, res, next) => {
+export const getOneContact = async ({ params, user }, res, next) => {
+	const {_id: owner} = user;
+
 	try {
-		const contact = await getContactById(params.id);
+		const contact = await getContactById(params.id, owner);
 
 		if (!contact) {
 			throw HttpError(404, "Not Found");
 		}
 		res.status(200).json(contact);
-
 	} catch (error) {
 		next(error)
 	}
 
 };
 
-export const deleteContact = async ({ params }, res, next) => {
+export const deleteContact = async ({ params, user }, res, next) => {
+	const {_id: owner} = user;
+
 	try {
-		const removedContact = await removeContact(params.id);
+		const removedContact = await removeContact(params.id, owner);
 
 		if (!removedContact) {
 			throw HttpError(404, "Not Found");
@@ -46,9 +51,16 @@ export const deleteContact = async ({ params }, res, next) => {
 	}
 };
 
-export const createContact = async ({body}, res, next) => {
+export const createContact = async ({ user, body }, res, next) => {
+	const {_id: owner} = user;
+
 	try {
-		const newContact = await addContact(body.name, body.email, body.phone);
+		const newContact = await addContact({
+			name: body.name,
+			email: body.email,
+			phone: body.phone,
+			owner
+		});
 
 		if (!newContact) {
 			throw HttpError(404, "Not Found");
@@ -60,13 +72,15 @@ export const createContact = async ({body}, res, next) => {
 	}
 };
 
-export const updateContact = async ({ body, params }, res, next) => {
+export const updateContact = async ({ body, params, user }, res, next) => {
+	const { _id: owner } = user;
+
 	try {
 		if (!Object.keys(body).length) {
 			throw HttpError(400, "Body must have at least one field");
 		}
 
-		const updatedContact = await updateContactService(params.id, body);
+		const updatedContact = await updateContactService(params.id, body, owner);
 
 		if (!updatedContact) {
 			throw HttpError(404, "Not Found");
@@ -78,9 +92,11 @@ export const updateContact = async ({ body, params }, res, next) => {
 	}
 };
 
-export const updateStatusContact = async ({ body, params }, res, next) => {
+export const updateStatusContact = async ({ body, params, user }, res, next) => {
+	const { _id: owner } = user;
+
 	try {
-		const updatedContact = await changeStatusContact(params.id, body.favorite);
+		const updatedContact = await changeStatusContact(params.id, body.favorite, owner);
 
 		if (!updatedContact) {
 			throw HttpError(404, "Not Found");
