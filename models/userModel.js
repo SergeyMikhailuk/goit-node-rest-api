@@ -1,33 +1,28 @@
 import { model, Schema } from "mongoose";
-import { userRoles } from "../constants/index.js";
 
 const userSchema = new Schema({
-	// name: String,
-	name: {
+	password: {
 		type: String,
-		required: true
+		required: [true, 'Set password for user'],
+		select: false
 	},
 	email: {
 		type: String,
-		required: true,
-		unique: true
+		required: [true, 'Email is required'],
+		unique: true,
 	},
-	password: {
+	subscription: {
 		type: String,
-		required: true,
-		select: false
+		enum: ["starter", "pro", "business"],
+		default: "starter"
 	},
-	year: Number,
-	role: {
-		type: String,
-		enum: Object.values(userRoles),
-		default: userRoles.USER
-	},
+	token: String,
 	hidden: {
 		type: Boolean,
 		default: false
-	}
-}, {
+	},
+},
+{
 	timestamps: true,
 	versionKey: false
 })
