@@ -1,5 +1,5 @@
-import { signupService, loginService } from "../services/usersServices.js";
-import {User} from "../models/userModel.js";
+import { changeAvatar, signupService, loginService } from "../services/usersServices.js";
+import { User } from "../models/userModel.js";
 
 export const signup = async (req, res, next) => {
 	try {
@@ -45,6 +45,24 @@ export const logout = async (req, res, next) => {
 		await User.findByIdAndUpdate(_id, { token: "" });
 
 		res.status(204).json();
+	} catch (error) {
+		next(error);
+	}
+};
+
+export const updateAvatar = async (req, res, next) => {
+	const { _id } = req.user;
+
+	try {
+		if (!req.file) {
+			res.status(400).json({ message: "Avatar is required..." });
+			return;
+		}
+		const { path: tmpUpload, originalname } = req.file;
+
+		const avatarURL = await changeAvatar(originalname, tmpUpload, _id);
+
+		res.json({ avatarURL });
 	} catch (error) {
 		next(error);
 	}

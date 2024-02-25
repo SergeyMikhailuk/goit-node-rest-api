@@ -4,7 +4,7 @@ import HttpError from "./HttpError.js";
 const checkUserID = (req, res, next) => {
 	const { id } = req.params;
 	const isValidID = Types.ObjectId.isValid(id);
-	console.log(isValidID)
+
 	if (!isValidID) next(HttpError(404, 'ID is no valid'));
 	next()
 }

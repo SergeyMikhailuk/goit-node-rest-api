@@ -1,4 +1,5 @@
 import { model, Schema } from "mongoose";
+import crypto from "crypto";
 
 const userSchema = new Schema({
 	password: {
@@ -21,11 +22,20 @@ const userSchema = new Schema({
 		type: Boolean,
 		default: false
 	},
+	avatarURL: String
 },
 {
 	timestamps: true,
 	versionKey: false
 })
+
+userSchema.pre("save", async function () {
+	if (this.isNew) {
+		const emailHash = crypto.createHash("md5").update(this.email).digest("hex");
+
+		this.avatarURL = `https://www.gravatar.com/avatar/${emailHash}.jpg?d=wavatar`;
+	}
+});
 
 const User = model('user', userSchema);
 
