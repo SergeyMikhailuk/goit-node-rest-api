@@ -3,6 +3,8 @@ import { checkUserExists } from "../services/usersServices.js";
 import httpError from "./HttpError.js";
 import { User } from "../models/userModel.js";
 import {checkToken} from "../services/jwtService.js";
+import multer from "multer";
+import { v4 } from "uuid";
 
 export const checkSignupData = async (req, res, next) => {
 	 try {
@@ -67,3 +69,27 @@ export const allowFor = (...roles) => (req, res, next) => {
 
 	throw httpError(403, 'You are not allowed to perform this action');
 }
+
+const multerStorage = multer.diskStorage({
+	destination: (req, file, cbk) => {
+		cbk(null, "tpm");
+	},
+	filename: (req, file, cbk) => {
+		const extension = file.mimetype.split("/")[1];
+
+		cbk(null, `${req.user.id}-${v4()}.${extension}`);
+	},
+});
+
+const multerFilter = (req, file, cbk) => {
+	if (file.mimetype.startsWith("image/")) {
+		cbk(null, true);
+	} else {
+		cbk(new httpError(400, "You can upload only img..."), false);
+	}
+};
+
+export const uploadAvatar = multer({
+	storage: multerStorage,
+	fileFilter: multerFilter,
+}).single("avatar");

@@ -1,7 +1,11 @@
-import { User } from '../models/userModel.js'
+import { User } from "../models/userModel.js"
 import { signToken } from "./jwtService.js";
 import HttpError from "../helpers/HttpError.js";
 import bcryptjs from "bcryptjs";
+import path from "path";
+import { v4 } from "uuid";
+import Jimp from "jimp";
+import fse from 'fs-extra';
 
 export const signupService = async ({ email, password }) => {
 	const hashPassword = await bcryptjs.hash(password, 10);
@@ -41,3 +45,19 @@ export const loginService = async ({ email, password }) => {
 
 	return { user: updatedUser, token };
 }
+
+export const changeAvatar = async (originalname, tmpUpload, _id) => {
+	const avatarsDir = path.resolve("public", "avatars");
+	const fileName = `${_id}-${v4()}${originalname}`;
+	const resolvedPath = path.resolve(avatarsDir, fileName);
+
+	const image = await Jimp.read(tmpUpload);
+	image.resize(250, 250).write(resolvedPath);
+	await fse.unlink(tmpUpload);
+
+	const avatarURL = path.join("avatars", fileName);
+
+	await User.findByIdAndUpdate(_id, { avatarURL });
+
+	return avatarURL;
+};
