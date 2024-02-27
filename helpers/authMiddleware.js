@@ -1,4 +1,4 @@
-import { signupUserSchema } from "../schemas/usersSchema.js";
+import { signupUserSchema, verificationEmailSchema } from "../schemas/usersSchema.js";
 import { checkUserExists } from "../services/usersServices.js";
 import httpError from "./HttpError.js";
 import { User } from "../models/userModel.js";
@@ -93,3 +93,19 @@ export const uploadAvatar = multer({
 	storage: multerStorage,
 	fileFilter: multerFilter,
 }).single("avatar");
+
+export const validateVerificationEmail = async (req, res, next) => {
+	try {
+		const { value, error } = verificationEmailSchema(req.body);
+		if (error)
+			return res.status(400).json({
+				message: error.message,
+			});
+
+		req.body = value;
+
+		next();
+	} catch (error) {
+	next(error)
+}
+};
