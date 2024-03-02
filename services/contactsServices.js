@@ -24,7 +24,7 @@ export async function updateContact(contactId, { name, email, phone }, owner) {
 	if (name) contact.name = name;
 	if (email) contact.email = email;
 	if (phone) contact.phone = phone;
-
+	// save
 	await contact.save().where("owner").equals(owner);
 
 	return contact;
